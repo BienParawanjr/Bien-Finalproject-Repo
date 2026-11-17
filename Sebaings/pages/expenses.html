@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SaBaings</title>
+    <meta charset="UTF-8">
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name ="author" content="B. PARAWAN">
+    <meta name ="keywords" content="Budget Planner">
+    <meta name ="description" content="This is my project website for first term">
+    <link rel="icon" type="image/jpeg" href="../images/Orange Wallet with Philippine Peso Coin.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="../js/app.js" defer></script>
+</head>
+<body class="is-locked" data-page="expenses">
+
+    <!-- log-in modal -->
+    <div id="login-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <div class="modal-card">
+            <p class="site-name">SaBaings</p>
+            <h2 id="login-title">Log in to your planner</h2>
+            <p class="modal-text">Enter your name to open your budget. Your data is saved on this device only.</p>
+
+            <form id="login-form" class="login-form" novalidate>
+                <div class="form-group">
+                    <label for="login-name">Student Name</label>
+                    <input type="text" id="login-name" name="name" autocomplete="name" maxlength="40" placeholder="e.g., Juan Dela Cruz" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-student-id">Student ID (optional)</label>
+                    <input type="text" id="login-student-id" name="student_id" maxlength="20" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="login-pin">PIN (optional, 4&ndash;6 digits)</label>
+                    <input type="password" id="login-pin" name="pin" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" autocomplete="off" aria-describedby="login-pin-hint">
+                    <small id="login-pin-hint">A simple lock for this device. It is not real security.</small>
+                </div>
+
+                <p id="login-error" class="form-error" role="alert"></p>
+                <button type="submit" class="button button--primary button--block">Log In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- NEW: delete confirmation modal -->
+    <div id="delete-modal" class="delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-describedby="delete-modal-text">
+        <div class="delete-modal-content">
+            <button type="button" class="delete-modal-close" aria-label="Close">&times;</button>
+            <h2 id="delete-modal-title">Delete this item?</h2>
+            <p id="delete-modal-text">This action cannot be undone.</p>
+            <div class="delete-modal-actions">
+                <button type="button" id="delete-cancel-button" class="button button--secondary">Cancel</button>
+                <button type="button" id="delete-confirm-button" class="button button--danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: snackbar message -->
+    <div id="snackbar" role="status" aria-live="polite"></div>
+
+    <!-- NEW: scroll to top button -->
+    <button type="button" id="scroll-top-button" class="scroll-top-button" aria-label="Scroll back to top" title="Back to top">&uarr;</button>
+
+    <div id="app">
+
+    <!-- Skip link for keyboard and screen reader users -->
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- background video -->
+    <div class="hero-video" aria-hidden="true">
+        <video autoplay muted loop playsinline preload="auto" poster="../images/hero-poster.jpg">
+            <source src="../videos/hero.mp4" type="video/mp4">
+        </video>
+        <div class="hero-shade"></div>
+    </div>
+
+    <!-- navigation bar -->
+    <aside class="navbar">
+        <h2>Navigation</h2>
+        <div class="container">
+            <a href="../index.html" class="navbar-brand" aria-label="SaBaings home"></a>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="../index.html" class="nav-link">Dashboard</a></li>
+                <li class="nav-item"><a href="expenses.html" class="nav-link active" aria-current="page">Expenses</a></li>
+                <li class="nav-item"><a href="income.html" class="nav-link">Income</a></li>
+                <li class="nav-item"><a href="saving.html" class="nav-link">Saving</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- page header -->
+    <header class="site-header hero" id="top">
+        <div class="hero-inner">
+            <div class="hero-card">
+
+                <!-- Greeting and log out -->
+                <div class="user-bar">
+                    <p id="welcome-message" class="welcome-message">Welcome back!</p>
+                    <div class="user-actions">
+                        <!-- NEW: dark mode toggle -->
+                        <button type="button" id="theme-toggle" class="button button--secondary" aria-pressed="false">&#9790; Dark</button>
+                        <button type="button" id="logout-button" class="button button--secondary">Log Out</button>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="site-name">SaBaings</p>
+                    <h1 class="site-title">My Expenses</h1>
+                    <p class="site-subtitle">Know where your baon goes, one peso at a time.</p>
+                </div>
+
+                <!-- Month and year selector -->
+                <form class="period-selector" action="#" method="get" aria-label="Choose a month and year to view">
+                    <div class="form-group">
+                        <label for="expenses-month">Month</label>
+                        <select id="expenses-month" name="month">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10" selected>October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expenses-year">Year</label>
+                        <select id="expenses-year" name="year">
+                            <option value="2026" selected>2026</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="button button--secondary">View Month</button>
+                </form>
+
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="dashboard">
+
+        <!-- Spending Summary -->
+        <section id="expense-summary" class="summary-section" aria-labelledby="summary-heading">
+            <h2 id="summary-heading" class="section-title">Spending Summary</h2>
+
+            <div class="summary-cards">
+                <article class="summary-card summary-card--budget">
+                    <h3 class="card-label">Monthly Budget</h3>
+                    <p class="card-value" id="summary-budget">₱4,250.00</p>
+                    <p class="card-note">Total of all category budgets</p>
+                </article>
+
+                <article class="summary-card summary-card--spent">
+                    <h3 class="card-label">Total Spent</h3>
+                    <p class="card-value" id="summary-spent">₱3,100.00</p>
+                    <p class="card-note">Spent so far this month</p>
+                </article>
+
+                <article class="summary-card summary-card--remaining">
+                    <h3 class="card-label">Remaining Budget</h3>
+                    <p class="card-value" id="summary-remaining">₱1,150.00</p>
+                    <p class="card-note">73% of your budget is used</p>
+                </article>
+
+                <article class="summary-card summary-card--daily">
+                    <h3 class="card-label">Safe to Spend Per Day</h3>
+                    <p class="card-value" id="summary-daily">₱104.55</p>
+                    <p class="card-note">For the 11 days left this month</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Spending Alerts -->
+        <section id="spending-alerts" class="alerts-section" aria-labelledby="alerts-heading">
+            <h2 id="alerts-heading" class="section-title">Spending Alerts</h2>
+            <ul class="alert-list">
+                <li class="alert alert--warning">Entertainment is at 83% of its budget. Only ₱50.00 left.</li>
+                <li class="alert alert--limit">Housing and Subscription budgets are fully used this month.</li>
+            </ul>
+        </section>
+
+        <!-- Budget Categories -->
+        <section id="budget-categories" class="expenses-container" aria-labelledby="budget-heading">
+            <div class="section-header section-heading-row">
+                <h2 id="budget-heading" class="section-title">Monthly Budget</h2>
+
+                <div class="toolbar">
+                    <span class="view-tag">Expenses Type &amp; Budget</span>
+                    <a class="button button--primary btn-new" href="#add-expense">+ New</a>
+                </div>
+            </div>
+
+            <!-- CATEGORY CARDS GRID -->
+            <div class="cards-grid">
+
+            <!-- 1. Food Card -->
+            <article class="category-card category-card--food" data-category="food">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Food</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="food-budget">₱1,500.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="food-spend">₱1,120.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="food-remaining">₱380.00</strong></span>
+                </div>
+                <label for="progress-food" class="visually-hidden">Food budget used</label>
+                <progress id="progress-food" class="budget-progress" max="100" value="75">75%</progress>
+                <p class="card-status card-status--ok">75% used &middot; On track</p>
+            </article>
+
+            <!-- 2. Transportation Card -->
+            <article class="category-card category-card--transpo" data-category="transpo">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Transportation</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="transpo-budget">₱800.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="transpo-spend">₱540.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="transpo-remaining">₱260.00</strong></span>
+                </div>
+                <label for="progress-transpo" class="visually-hidden">Transportation budget used</label>
+                <progress id="progress-transpo" class="budget-progress" max="100" value="68">68%</progress>
+                <p class="card-status card-status--ok">68% used &middot; On track</p>
+            </article>
+
+            <!-- 3. Entertainment Card -->
+            <article class="category-card category-card--entertainment" data-category="entertainment">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Entertainment</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="entertainment-budget">₱300.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="entertainment-spend">₱250.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="entertainment-remaining">₱50.00</strong></span>
+                </div>
+                <label for="progress-entertainment" class="visually-hidden">Entertainment budget used</label>
+                <progress id="progress-entertainment" class="budget-progress" max="100" value="83">83%</progress>
+                <p class="card-status card-status--warning">83% used &middot; Almost at limit</p>
+            </article>
+
+            <!-- 4. Shopping Card -->
+            <article class="category-card category-card--shopping" data-category="shopping">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Shopping</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="shopping-budget">₱250.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="shopping-spend">₱180.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="shopping-remaining">₱70.00</strong></span>
+                </div>
+                <label for="progress-shopping" class="visually-hidden">Shopping budget used</label>
+                <progress id="progress-shopping" class="budget-progress" max="100" value="72">72%</progress>
+                <p class="card-status card-status--ok">72% used &middot; On track</p>
+            </article>
+
+            <!-- 5. Housing Card -->
+            <article class="category-card category-card--housing" data-category="housing">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Housing</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="housing-budget">₱600.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="housing-spend">₱600.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="housing-remaining">₱0.00</strong></span>
+                </div>
+                <label for="progress-housing" class="visually-hidden">Housing budget used</label>
+                <progress id="progress-housing" class="budget-progress" max="100" value="100">100%</progress>
+                <p class="card-status card-status--limit">100% used &middot; Limit reached</p>
+            </article>
+
+            <!-- 6. Health Care Card -->
+            <article class="category-card category-card--health" data-category="health">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Health Care</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="health-budget">₱150.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="health-spend">₱60.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="health-remaining">₱90.00</strong></span>
+                </div>
+                <label for="progress-health" class="visually-hidden">Health Care budget used</label>
+                <progress id="progress-health" class="budget-progress" max="100" value="40">40%</progress>
+                <p class="card-status card-status--ok">40% used &middot; On track</p>
+            </article>
+
+            <!-- 7. Improvement & Learning Card -->
+            <article class="category-card category-card--learning" data-category="learning">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Improvement &amp; Learning</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="learning-budget">₱300.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="learning-spend">₱120.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="learning-remaining">₱180.00</strong></span>
+                </div>
+                <label for="progress-learning" class="visually-hidden">Improvement &amp; Learning budget used</label>
+                <progress id="progress-learning" class="budget-progress" max="100" value="40">40%</progress>
+                <p class="card-status card-status--ok">40% used &middot; On track</p>
+            </article>
+
+            <!-- 8. Subscription Card -->
+            <article class="category-card category-card--sub" data-category="sub">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Subscription</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="sub-budget">₱150.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="sub-spend">₱150.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="sub-remaining">₱0.00</strong></span>
+                </div>
+                <label for="progress-sub" class="visually-hidden">Subscription budget used</label>
+                <progress id="progress-sub" class="budget-progress" max="100" value="100">100%</progress>
+                <p class="card-status card-status--limit">100% used &middot; Limit reached</p>
+            </article>
+
+            <!-- 9. Others Card -->
+            <article class="category-card category-card--others" data-category="others">
+                <div class="card-header">
+                    <span class="icon" aria-hidden="true"></span>
+                    <h3>Others</h3>
+                </div>
+                <div class="card-stats">
+                    <span class="label budget-label">Budget: <strong id="others-budget">₱200.00</strong></span>
+                    <span class="label spend-label">Total Spend: <strong id="others-spend">₱80.00</strong></span>
+                    <span class="label remaining-label">Remaining: <strong id="others-remaining">₱120.00</strong></span>
+                </div>
+                <label for="progress-others" class="visually-hidden">Others budget used</label>
+                <progress id="progress-others" class="budget-progress" max="100" value="40">40%</progress>
+                <p class="card-status card-status--ok">40% used &middot; On track</p>
+            </article>
+
+            </div>
+        </section>
+
+        <!-- Spending Chart -->
+        <section id="spending-chart" class="chart-section" aria-labelledby="chart-heading">
+            <h2 id="chart-heading" class="section-title">Spending Breakdown</h2>
+
+            <figure class="chart-placeholder">
+                <div class="chart-box" role="img" aria-label="Placeholder for a chart showing spending by category">
+                    <p>Spending by category chart placeholder</p>
+                </div>
+                <figcaption>How much you spent in each category this month.</figcaption>
+            </figure>
+
+            <!-- NEW: budget vs spent chart  -->
+            <figure class="chart-placeholder">
+                <div class="chart-box" id="budget-vs-spent-chart" role="img" aria-label="Chart comparing the budget and the amount spent in each category">
+                    <p>Loading chart&hellip;</p>
+                </div>
+                <figcaption>Your budget compared with what you spent in each category.</figcaption>
+            </figure>
+        </section>
+
+        <!-- Add Expense Form -->
+        <section id="add-expense" class="form-section" aria-labelledby="add-expense-heading">
+            <h2 id="add-expense-heading" class="section-title">Add Expense</h2>
+
+            <form id="expense-form" class="expense-form" action="#" method="post">
+                <fieldset class="form-fieldset">
+                    <legend>New Expense</legend>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="expense-description">What did you buy?</label>
+                            <input type="text" id="expense-description" name="description" maxlength="60" placeholder="e.g., Canteen lunch" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-category">Category</label>
+                            <select id="expense-category" name="category" required>
+                                <option value="" selected disabled>Select a category</option>
+                                <option value="food">Food</option>
+                                <option value="transpo">Transportation</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="housing">Housing</option>
+                                <option value="health">Health Care</option>
+                                <option value="learning">Improvement &amp; Learning</option>
+                                <option value="sub">Subscription</option>
+                                <option value="others">Others</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-amount">Amount (₱)</label>
+                            <input type="number" id="expense-amount" name="amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-date">Date</label>
+                            <input type="date" id="expense-date" name="expense_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="expense-payment">Payment Method</label>
+                            <select id="expense-payment" name="payment_method" required>
+                                <option value="" selected disabled>How did you pay?</option>
+                                <option value="cash">Cash</option>
+                                <option value="gcash">GCash</option>
+                                <option value="maya">Maya</option>
+                                <option value="bank">Debit Card / Bank</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label for="expense-notes">Notes (optional)</label>
+                            <textarea id="expense-notes" name="notes" rows="3" maxlength="150" placeholder="Add a short note about this expense"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary">Add Expense</button>
+                        <button type="reset" class="button button--secondary">Reset</button>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Expense Records -->
+        <section id="expense-records" class="records-section" aria-labelledby="records-heading">
+            <h2 id="records-heading" class="section-title">Expense Records</h2>
+
+            <!-- Filter and search -->
+            <form class="filter-bar" action="#" method="get" aria-label="Filter expense records">
+                <div class="form-group">
+                    <label for="filter-search">Search</label>
+                    <input type="search" id="filter-search" name="search" placeholder="Search description or notes">
+                </div>
+
+                <div class="form-group">
+                    <label for="filter-category">Category</label>
+                    <select id="filter-category" name="category_filter">
+                        <option value="all" selected>All categories</option>
+                                <option value="food">Food</option>
+                                <option value="transpo">Transportation</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="housing">Housing</option>
+                                <option value="health">Health Care</option>
+                                <option value="learning">Improvement &amp; Learning</option>
+                                <option value="sub">Subscription</option>
+                                <option value="others">Others</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="button button--secondary">Apply Filter</button>
+                <button type="reset" class="button button--secondary">Clear</button>
+            </form>
+
+            <!-- Wrapper lets the table scroll sideways on small screens -->
+            <div class="table-wrapper" tabindex="0" role="region" aria-labelledby="records-heading">
+                <table class="expenses-table">
+                    <caption>Latest 8 expense records (sample data)</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" class="col-number">#</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Description</th>
+                            <th scope="col">Category</th>
+                            <th scope="col">Payment Method</th>
+                            <th scope="col" class="col-amount">Amount (₱)</th>
+                            <th scope="col">Notes</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <!-- Sample expense 1 -->
+                        <tr>
+                            <td class="col-number">1</td>
+                            <td><time datetime="2026-10-20">Oct 20, 2026</time></td>
+                            <th scope="row">Canteen lunch</th>
+                            <td>Food</td>
+                            <td>Cash</td>
+                            <td class="col-amount amount--expense">−₱85.00</td>
+                            <td>Rice meal and juice</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Canteen lunch">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Canteen lunch">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 2 -->
+                        <tr>
+                            <td class="col-number">2</td>
+                            <td><time datetime="2026-10-20">Oct 20, 2026</time></td>
+                            <th scope="row">Jeepney fare to school</th>
+                            <td>Transportation</td>
+                            <td>Cash</td>
+                            <td class="col-amount amount--expense">−₱28.00</td>
+                            <td>Round trip</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Jeepney fare to school">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Jeepney fare to school">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 3 -->
+                        <tr>
+                            <td class="col-number">3</td>
+                            <td><time datetime="2026-10-19">Oct 19, 2026</time></td>
+                            <th scope="row">Milk tea with friends</th>
+                            <td>Food</td>
+                            <td>GCash</td>
+                            <td class="col-amount amount--expense">−₱120.00</td>
+                            <td>After class</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Milk tea with friends">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Milk tea with friends">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 4 -->
+                        <tr>
+                            <td class="col-number">4</td>
+                            <td><time datetime="2026-10-18">Oct 18, 2026</time></td>
+                            <th scope="row">Mobile game top-up</th>
+                            <td>Entertainment</td>
+                            <td>GCash</td>
+                            <td class="col-amount amount--expense">−₱100.00</td>
+                            <td>Weekly event pass</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Mobile game top-up">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Mobile game top-up">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 5 -->
+                        <tr>
+                            <td class="col-number">5</td>
+                            <td><time datetime="2026-10-17">Oct 17, 2026</time></td>
+                            <th scope="row">Paracetamol and vitamin C</th>
+                            <td>Health Care</td>
+                            <td>Cash</td>
+                            <td class="col-amount amount--expense">−₱60.00</td>
+                            <td>Had a cold</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Paracetamol and vitamin C">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Paracetamol and vitamin C">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 6 -->
+                        <tr>
+                            <td class="col-number">6</td>
+                            <td><time datetime="2026-10-15">Oct 15, 2026</time></td>
+                            <th scope="row">Printing and bond paper</th>
+                            <td>Improvement &amp; Learning</td>
+                            <td>Cash</td>
+                            <td class="col-amount amount--expense">−₱45.00</td>
+                            <td>For research paper</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Printing and bond paper">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Printing and bond paper">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 7 -->
+                        <tr>
+                            <td class="col-number">7</td>
+                            <td><time datetime="2026-10-10">Oct 10, 2026</time></td>
+                            <th scope="row">Ukay-ukay shirt</th>
+                            <td>Shopping</td>
+                            <td>Cash</td>
+                            <td class="col-amount amount--expense">−₱180.00</td>
+                            <td>Needed for school event</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Ukay-ukay shirt">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Ukay-ukay shirt">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample expense 8 -->
+                        <tr>
+                            <td class="col-number">8</td>
+                            <td><time datetime="2026-10-05">Oct 5, 2026</time></td>
+                            <th scope="row">Boarding house share</th>
+                            <td>Housing</td>
+                            <td>GCash</td>
+                            <td class="col-amount amount--expense">−₱600.00</td>
+                            <td>Monthly rent share</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit Boarding house share">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete Boarding house share">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <th scope="row" colspan="5">Total of listed records</th>
+                            <td class="col-amount amount--expense">−₱1,218.00</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- Budget Settings -->
+        <section id="budget-settings" class="form-section" aria-labelledby="budget-settings-heading">
+            <h2 id="budget-settings-heading" class="section-title">Set My Monthly Budget</h2>
+
+            <form id="budget-form" class="budget-form" action="#" method="post">
+                <fieldset class="form-fieldset">
+                    <legend>Budget for Each Category</legend>
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label for="set-food">Food (₱)</label>
+                            <input type="number" id="set-food" name="budget_food" min="0" step="0.01" value="1500.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-transpo">Transportation (₱)</label>
+                            <input type="number" id="set-transpo" name="budget_transpo" min="0" step="0.01" value="800.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-entertainment">Entertainment (₱)</label>
+                            <input type="number" id="set-entertainment" name="budget_entertainment" min="0" step="0.01" value="300.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-shopping">Shopping (₱)</label>
+                            <input type="number" id="set-shopping" name="budget_shopping" min="0" step="0.01" value="250.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-housing">Housing (₱)</label>
+                            <input type="number" id="set-housing" name="budget_housing" min="0" step="0.01" value="600.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-health">Health Care (₱)</label>
+                            <input type="number" id="set-health" name="budget_health" min="0" step="0.01" value="150.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-learning">Improvement &amp; Learning (₱)</label>
+                            <input type="number" id="set-learning" name="budget_learning" min="0" step="0.01" value="300.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-sub">Subscription (₱)</label>
+                            <input type="number" id="set-sub" name="budget_sub" min="0" step="0.01" value="150.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="set-others">Others (₱)</label>
+                            <input type="number" id="set-others" name="budget_others" min="0" step="0.01" value="200.00" inputmode="decimal">
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary">Save Budgets</button>
+                        <button type="reset" class="button button--secondary">Reset</button>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Quick Tips -->
+        <aside id="quick-tips" class="tips-section" aria-labelledby="tips-heading">
+            <h2 id="tips-heading" class="section-title">Quick Tips</h2>
+            <ul class="tips-list">
+                <li>Record every expense on the same day so you don't forget small purchases.</li>
+                <li>Cover needs first (food, fare, school) before wants like games and milk tea.</li>
+                <li>Keep a small buffer in your budget for surprise school expenses.</li>
+            </ul>
+        </aside>
+
+    </main>
+
+    <!-- footer -->
+    <footer class="site-footer">
+        <p>&copy; 2026 SaBaings. All amounts are in Philippine pesos (₱).</p>
+        <p><a href="#top">Back to top</a></p>
+    </footer>
+
+    </div>
+    <!-- end of #app -->
+
+</body>
+</html>

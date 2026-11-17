@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>SaBaings</title>
+    <meta charset="UTF-8">
+    <meta name ="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name ="author" content="B. PARAWAN">
+    <meta name ="keywords" content="Budget Planner">
+    <meta name ="description" content="This is my project website for first term">
+    <link rel="icon" type="image/jpeg" href="../images/Orange Wallet with Philippine Peso Coin.png">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="../js/app.js" defer></script>
+</head>
+<body class="is-locked" data-page="saving">
+
+    <!-- log-in modal -->
+    <div id="login-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+        <div class="modal-card">
+            <p class="site-name">SaBaings</p>
+            <h2 id="login-title">Log in to your planner</h2>
+            <p class="modal-text">Enter your name to open your budget. Your data is saved on this device only.</p>
+
+            <form id="login-form" class="login-form" novalidate>
+                <div class="form-group">
+                    <label for="login-name">Student Name</label>
+                    <input type="text" id="login-name" name="name" autocomplete="name" maxlength="40" placeholder="e.g., Juan Dela Cruz" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="login-student-id">Student ID (optional)</label>
+                    <input type="text" id="login-student-id" name="student_id" maxlength="20" autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label for="login-pin">PIN (optional, 4&ndash;6 digits)</label>
+                    <input type="password" id="login-pin" name="pin" inputmode="numeric" pattern="[0-9]{4,6}" maxlength="6" autocomplete="off" aria-describedby="login-pin-hint">
+                    <small id="login-pin-hint">A simple lock for this device. It is not real security.</small>
+                </div>
+
+                <p id="login-error" class="form-error" role="alert"></p>
+                <button type="submit" class="button button--primary button--block">Log In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- NEW: delete confirmation modal -->
+    <div id="delete-modal" class="delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-describedby="delete-modal-text">
+        <div class="delete-modal-content">
+            <button type="button" class="delete-modal-close" aria-label="Close">&times;</button>
+            <h2 id="delete-modal-title">Delete this item?</h2>
+            <p id="delete-modal-text">This action cannot be undone.</p>
+            <div class="delete-modal-actions">
+                <button type="button" id="delete-cancel-button" class="button button--secondary">Cancel</button>
+                <button type="button" id="delete-confirm-button" class="button button--danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: snackbar message -->
+    <div id="snackbar" role="status" aria-live="polite"></div>
+
+    <!-- NEW: scroll to top button -->
+    <button type="button" id="scroll-top-button" class="scroll-top-button" aria-label="Scroll back to top" title="Back to top">&uarr;</button>
+
+    <div id="app">
+
+    <!-- Skip link for keyboard and screen reader users -->
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+
+    <!-- background video  -->
+    <div class="hero-video" aria-hidden="true">
+        <video autoplay muted loop playsinline preload="auto" poster="../images/hero-poster.jpg">
+            <source src="../videos/hero.mp4" type="video/mp4">
+        </video>
+        <div class="hero-shade"></div>
+    </div>
+
+<!-- navigation bar -->
+    <aside class="navbar">
+        <h2>Navigation</h2>
+        <div class="container">
+            <a href="../index.html" class="navbar-brand" aria-label="SaBaings home"></a>
+            <ul class="navbar-nav">
+                <li class="nav-item"><a href="../index.html" class="nav-link">Dashboard</a></li>
+                <li class="nav-item"><a href="expenses.html" class="nav-link">Expenses</a></li>
+                <li class="nav-item"><a href="income.html" class="nav-link">Income</a></li>
+                <li class="nav-item"><a href="saving.html" class="nav-link active" aria-current="page">Saving</a></li>
+            </ul>
+        </div>
+    </aside>
+
+    <!-- page header -->
+    <header class="site-header hero" id="top">
+        <div class="hero-inner">
+            <div class="hero-card">
+
+                <!-- Greeting and log out -->
+                <div class="user-bar">
+                    <p id="welcome-message" class="welcome-message">Welcome back!</p>
+                    <div class="user-actions">
+                        <!-- NEW: dark mode toggle  -->
+                        <button type="button" id="theme-toggle" class="button button--secondary" aria-pressed="false">&#9790; Dark</button>
+                        <button type="button" id="logout-button" class="button button--secondary">Log Out</button>
+                    </div>
+                </div>
+
+                <div>
+                    <p class="site-name">SaBaings</p>
+                    <h1 class="site-title">My Savings</h1>
+                    <p class="site-subtitle">Small savings today, bigger goals tomorrow.</p>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="dashboard">
+
+        <!-- Savings Summary -->
+        <section id="savings-summary" class="summary-section" aria-labelledby="summary-heading">
+            <h2 id="summary-heading" class="section-title">Savings Summary</h2>
+
+            <div class="summary-cards">
+                <article class="summary-card summary-card--total">
+                    <h3 class="card-label">Total Savings</h3>
+                    <p class="card-value">₱3,750.00</p>
+                    <p class="card-note">Current balance across all goals</p>
+                </article>
+
+                <article class="summary-card summary-card--saved">
+                    <h3 class="card-label">Saved This Month</h3>
+                    <p class="card-value">₱1,100.00</p>
+                    <p class="card-note">Total deposits in October</p>
+                </article>
+
+                <article class="summary-card summary-card--withdrawn">
+                    <h3 class="card-label">Withdrawn This Month</h3>
+                    <p class="card-value">₱150.00</p>
+                    <p class="card-note">Withdrawals reduce your savings balance. They are not counted as deposits.</p>
+                </article>
+
+                <article class="summary-card summary-card--rate">
+                    <h3 class="card-label">Monthly Saving Rate</h3>
+                    <p class="card-value">24%</p>
+                    <p class="card-note">Share of this month's income added to savings</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- My Savings Goals -->
+        <section id="savings-goals" class="goals-section" aria-labelledby="goals-heading">
+            <div class="section-heading-row">
+                <h2 id="goals-heading" class="section-title">My Savings Goals</h2>
+                <button type="button" class="button button--primary" id="add-new-goal-button" aria-controls="create-goal">Add New Goal</button>
+            </div>
+
+            <div class="goal-grid">
+
+                <!-- Goal 1: Baon Buffer -->
+                <article class="goal-card" id="goal-baon-buffer" data-goal-id="baon-buffer">
+                    <h3 class="goal-name">Baon Buffer</h3>
+                    <p class="goal-description">Emergency money for unexpected school expenses.</p>
+
+                    <dl class="goal-stats">
+                        <div class="goal-stat">
+                            <dt>Target</dt>
+                            <dd>₱1,000.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Saved</dt>
+                            <dd>₱650.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Remaining</dt>
+                            <dd>₱350.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Completed</dt>
+                            <dd>65%</dd>
+                        </div>
+                    </dl>
+
+                    <label for="progress-baon-buffer" class="visually-hidden">Baon Buffer progress</label>
+                    <progress id="progress-baon-buffer" class="goal-progress" max="100" value="65">65%</progress>
+
+                    <div class="goal-actions">
+                        <button type="button" class="button button--add" data-action="add" data-goal-id="baon-buffer">Add Money</button>
+                        <button type="button" class="button button--withdraw" data-action="withdraw" data-goal-id="baon-buffer">Withdraw Money</button>
+                        <button type="button" class="button button--edit" data-action="edit" data-goal-id="baon-buffer">Edit Goal</button>
+                    </div>
+                </article>
+
+                <!-- Goal 2: Tech & Gear Fund -->
+                <article class="goal-card" id="goal-tech-gear" data-goal-id="tech-gear">
+                    <h3 class="goal-name">Tech &amp; Gear Fund</h3>
+                    <p class="goal-description">Saving for a mouse, keyboard, headphones, or laptop accessories.</p>
+
+                    <dl class="goal-stats">
+                        <div class="goal-stat">
+                            <dt>Target</dt>
+                            <dd>₱5,000.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Saved</dt>
+                            <dd>₱1,800.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Remaining</dt>
+                            <dd>₱3,200.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Completed</dt>
+                            <dd>36%</dd>
+                        </div>
+                    </dl>
+
+                    <label for="progress-tech-gear" class="visually-hidden">Tech and Gear Fund progress</label>
+                    <progress id="progress-tech-gear" class="goal-progress" max="100" value="36">36%</progress>
+
+                    <div class="goal-actions">
+                        <button type="button" class="button button--add" data-action="add" data-goal-id="tech-gear">Add Money</button>
+                        <button type="button" class="button button--withdraw" data-action="withdraw" data-goal-id="tech-gear">Withdraw Money</button>
+                        <button type="button" class="button button--edit" data-action="edit" data-goal-id="tech-gear">Edit Goal</button>
+                    </div>
+                </article>
+
+                <!-- Goal 3: Transport Fund -->
+                <article class="goal-card" id="goal-transport" data-goal-id="transport">
+                    <h3 class="goal-name">Transport Fund</h3>
+                    <p class="goal-description">Saving for commuting expenses or future transportation needs.</p>
+
+                    <dl class="goal-stats">
+                        <div class="goal-stat">
+                            <dt>Target</dt>
+                            <dd>₱1,500.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Saved</dt>
+                            <dd>₱900.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Remaining</dt>
+                            <dd>₱600.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Completed</dt>
+                            <dd>60%</dd>
+                        </div>
+                    </dl>
+
+                    <label for="progress-transport" class="visually-hidden">Transport Fund progress</label>
+                    <progress id="progress-transport" class="goal-progress" max="100" value="60">60%</progress>
+
+                    <div class="goal-actions">
+                        <button type="button" class="button button--add" data-action="add" data-goal-id="transport">Add Money</button>
+                        <button type="button" class="button button--withdraw" data-action="withdraw" data-goal-id="transport">Withdraw Money</button>
+                        <button type="button" class="button button--edit" data-action="edit" data-goal-id="transport">Edit Goal</button>
+                    </div>
+                </article>
+
+                <!-- Goal 4: Fun & Leisure Fund -->
+                <article class="goal-card" id="goal-fun-leisure" data-goal-id="fun-leisure">
+                    <h3 class="goal-name">Fun &amp; Leisure Fund</h3>
+                    <p class="goal-description">Saving for games, manga, hobbies, or outings with friends.</p>
+
+                    <dl class="goal-stats">
+                        <div class="goal-stat">
+                            <dt>Target</dt>
+                            <dd>₱2,000.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Saved</dt>
+                            <dd>₱400.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Remaining</dt>
+                            <dd>₱1,600.00</dd>
+                        </div>
+                        <div class="goal-stat">
+                            <dt>Completed</dt>
+                            <dd>20%</dd>
+                        </div>
+                    </dl>
+
+                    <label for="progress-fun-leisure" class="visually-hidden">Fun and Leisure Fund progress</label>
+                    <progress id="progress-fun-leisure" class="goal-progress" max="100" value="20">20%</progress>
+
+                    <div class="goal-actions">
+                        <button type="button" class="button button--add" data-action="add" data-goal-id="fun-leisure">Add Money</button>
+                        <button type="button" class="button button--withdraw" data-action="withdraw" data-goal-id="fun-leisure">Withdraw Money</button>
+                        <button type="button" class="button button--edit" data-action="edit" data-goal-id="fun-leisure">Edit Goal</button>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- NEW: Savings Progress chart  -->
+        <section id="savings-chart-section" class="chart-section" aria-labelledby="savings-chart-heading">
+            <h2 id="savings-chart-heading" class="section-title">Savings Progress</h2>
+
+            <figure class="chart-placeholder">
+                <div class="chart-box" id="savings-chart" role="img" aria-label="Chart of saved and remaining money for each savings goal">
+                    <p>Loading chart&hellip;</p>
+                </div>
+                <figcaption>How much you have saved toward each goal, and how much is left.</figcaption>
+            </figure>
+        </section>
+
+        <!-- Manage My Savings -->
+        <section id="manage-savings" class="form-section" aria-labelledby="manage-heading">
+            <h2 id="manage-heading" class="section-title">Manage My Savings</h2>
+
+            <form id="transaction-form" class="savings-form" action="#" method="post">
+                <fieldset class="form-fieldset">
+                    <legend>New Savings Transaction</legend>
+
+                    <!-- Transaction type: two clearly separate choices -->
+                    <fieldset class="form-fieldset form-fieldset--inner">
+                        <legend>Transaction Type</legend>
+                        <div class="radio-group">
+                            <div class="radio-option radio-option--add">
+                                <input type="radio" id="type-add" name="transaction_type" value="deposit" checked>
+                                <label for="type-add">Add Money</label>
+                            </div>
+                            <div class="radio-option radio-option--withdraw">
+                                <input type="radio" id="type-withdraw" name="transaction_type" value="withdrawal" aria-describedby="withdraw-hint">
+                                <label for="type-withdraw">Withdraw Money</label>
+                            </div>
+                        </div>
+                        <p id="withdraw-hint" class="form-hint">
+                            Note: When withdrawing, the amount must not exceed the available balance in the selected goal.
+                        </p>
+                    </fieldset>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="transaction-goal">Select Savings Goal</label>
+                            <select id="transaction-goal" name="goal" required>
+                                <option value="" selected disabled>Choose a goal</option>
+                                <option value="baon-buffer">Baon Buffer</option>
+                                <option value="tech-gear">Tech &amp; Gear Fund</option>
+                                <option value="transport">Transport Fund</option>
+                                <option value="fun-leisure">Fun &amp; Leisure Fund</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transaction-amount">Amount (₱)</label>
+                            <input type="number" id="transaction-amount" name="amount" min="0.01" step="0.01" placeholder="0.00" inputmode="decimal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transaction-date">Transaction Date</label>
+                            <input type="date" id="transaction-date" name="transaction_date" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="transaction-note">Note (optional)</label>
+                            <input type="text" id="transaction-note" name="note" maxlength="100" placeholder="e.g., Leftover baon">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary">Confirm Transaction</button>
+                        <button type="reset" class="button button--secondary">Reset Form</button>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Create Savings Goal -->
+        <section id="create-goal" class="form-section" aria-labelledby="create-goal-heading">
+            <h2 id="create-goal-heading" class="section-title">Create a Savings Goal</h2>
+
+            <form id="create-goal-form" class="savings-form" action="#" method="post">
+                <fieldset class="form-fieldset">
+                    <legend>New Savings Goal</legend>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="goal-name">Goal Name</label>
+                            <input type="text" id="goal-name" name="goal_name" maxlength="50" placeholder="e.g., New Headphones" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goal-category">Goal Category</label>
+                            <select id="goal-category" name="goal_category" required>
+                                <option value="" selected disabled>Select a category</option>
+                                <option value="emergency">Emergency</option>
+                                <option value="school">School</option>
+                                <option value="technology">Technology</option>
+                                <option value="transportation">Transportation</option>
+                                <option value="leisure">Leisure</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goal-target">Target Amount (₱)</label>
+                            <input type="number" id="goal-target" name="target_amount" min="1" step="0.01" placeholder="0.00" inputmode="decimal" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goal-initial">Initial Savings Amount (₱)</label>
+                            <input type="number" id="goal-initial" name="initial_amount" min="0" step="0.01" placeholder="0.00" inputmode="decimal">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goal-date">Target Date</label>
+                            <input type="date" id="goal-date" name="target_date">
+                        </div>
+
+                        <div class="form-group form-group--full">
+                            <label for="goal-description">Goal Description</label>
+                            <textarea id="goal-description" name="goal_description" rows="3" maxlength="150" placeholder="What are you saving for?"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary">Create Goal</button>
+                    </div>
+                </fieldset>
+            </form>
+        </section>
+
+        <!-- Savings Activity History -->
+        <section id="savings-history" class="records-section" aria-labelledby="history-heading">
+            <h2 id="history-heading" class="section-title">Savings Activity History</h2>
+
+            <!-- Wrapper lets the table scroll sideways on small screens -->
+            <div class="table-wrapper" tabindex="0" role="region" aria-labelledby="history-heading">
+                <table class="savings-table">
+                    <caption class="visually-hidden">
+                        Deposits and withdrawals made to savings goals
+                    </caption>
+                    <thead>
+                        <tr>
+                            <th scope="col" class="col-number">#</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Goal Name</th>
+                            <th scope="col">Transaction Type</th>
+                            <th scope="col" class="col-amount">Amount (₱)</th>
+                            <th scope="col">Note</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <!-- Sample transaction 1: deposit -->
+                        <tr class="row--deposit">
+                            <td class="col-number">1</td>
+                            <td><time datetime="2026-10-19">Oct 19, 2026</time></td>
+                            <th scope="row">Baon Buffer</th>
+                            <td><span class="type-badge type-badge--deposit">Deposit</span></td>
+                            <td class="col-amount amount--deposit">+₱200.00</td>
+                            <td>From weekly allowance</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit transaction 1">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete transaction 1">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample transaction 2: deposit -->
+                        <tr class="row--deposit">
+                            <td class="col-number">2</td>
+                            <td><time datetime="2026-10-17">Oct 17, 2026</time></td>
+                            <th scope="row">Fun &amp; Leisure Fund</th>
+                            <td><span class="type-badge type-badge--deposit">Deposit</span></td>
+                            <td class="col-amount amount--deposit">+₱100.00</td>
+                            <td>Leftover baon</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit transaction 2">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete transaction 2">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample transaction 3: deposit -->
+                        <tr class="row--deposit">
+                            <td class="col-number">3</td>
+                            <td><time datetime="2026-10-14">Oct 14, 2026</time></td>
+                            <th scope="row">Tech &amp; Gear Fund</th>
+                            <td><span class="type-badge type-badge--deposit">Deposit</span></td>
+                            <td class="col-amount amount--deposit">+₱500.00</td>
+                            <td>Tutoring earnings</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit transaction 3">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete transaction 3">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample transaction 4: withdrawal -->
+                        <tr class="row--withdrawal">
+                            <td class="col-number">4</td>
+                            <td><time datetime="2026-10-12">Oct 12, 2026</time></td>
+                            <th scope="row">Baon Buffer</th>
+                            <td><span class="type-badge type-badge--withdrawal">Withdrawal</span></td>
+                            <td class="col-amount amount--withdrawal">−₱150.00</td>
+                            <td>Unexpected school expense</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit transaction 4">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete transaction 4">Delete</button>
+                            </td>
+                        </tr>
+
+                        <!-- Sample transaction 5: deposit -->
+                        <tr class="row--deposit">
+                            <td class="col-number">5</td>
+                            <td><time datetime="2026-10-08">Oct 8, 2026</time></td>
+                            <th scope="row">Tech &amp; Gear Fund</th>
+                            <td><span class="type-badge type-badge--deposit">Deposit</span></td>
+                            <td class="col-amount amount--deposit">+₱300.00</td>
+                            <td>Toward tech savings goal</td>
+                            <td class="col-actions">
+                                <button type="button" class="button button--edit" aria-label="Edit transaction 5">Edit</button>
+                                <button type="button" class="button button--delete" aria-label="Delete transaction 5">Delete</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Savings Quests -->
+        <section id="savings-quests" class="quests-section" aria-labelledby="quests-heading">
+            <h2 id="quests-heading" class="section-title">Savings Quests</h2>
+            <p class="section-intro">Reach each milestone on a goal to unlock a badge.</p>
+
+            <ul class="quest-list">
+                <li class="quest-badge quest-badge--unlocked">
+                    <h3 class="quest-title">First Steps</h3>
+                    <p class="quest-progress">25% Complete</p>
+                    <p class="quest-status">Unlocked</p>
+                </li>
+                <li class="quest-badge quest-badge--unlocked">
+                    <h3 class="quest-title">Halfway Hero</h3>
+                    <p class="quest-progress">50% Complete</p>
+                    <p class="quest-status">Unlocked</p>
+                </li>
+                <li class="quest-badge quest-badge--locked">
+                    <h3 class="quest-title">Almost There</h3>
+                    <p class="quest-progress">75% Complete</p>
+                    <p class="quest-status">Locked</p>
+                </li>
+                <li class="quest-badge quest-badge--locked">
+                    <h3 class="quest-title">Goal Unlocked!</h3>
+                    <p class="quest-progress">100% Complete</p>
+                    <p class="quest-status">Locked</p>
+                </li>
+            </ul>
+        </section>
+
+    </main>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="site-footer">
+        <p>&copy; 2026 SaBaings. All amounts are in Philippine pesos (₱).</p>
+        <p><a href="#top">Back to top</a></p>
+    </footer>
+
+    </div>
+    <!-- end of #app -->
+
+</body>
+</html>
